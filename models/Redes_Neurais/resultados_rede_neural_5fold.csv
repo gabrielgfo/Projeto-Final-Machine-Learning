@@ -1,0 +1,2 @@
+modelo,accuracy_mean,accuracy_std,f1_mean,f1_std,precision_mean,precision_std,recall_mean,recall_std,threshold_mean,notas
+Rede Neural (MLP 1 camada + SGD),0.8104609990553981,0.02830360876924709,0.8819603699528684,0.011198150170201924,0.8382609415407515,0.042467071529364735,0.9341773133832574,0.03369243300210396,0.20000000000000004,class_weight balanced + threshold tuning calibrado sem leakage (sub-split do treino)
