@@ -1,0 +1,17 @@
+MELHORES HIPERPARÂMETROS (RandomizedSearchCV)
+==================================================
+class_weight: {0: 1, 1: 2}
+criterion: entropy
+max_depth: 15
+max_features: None
+min_impurity_decrease: 0.0012123525181736484
+min_samples_leaf: 13
+min_samples_split: 46
+splitter: best
+ccp_alpha: 0.0043528172066691975
+
+Best F1 (CV interno): 0.8998
+
+Estatísticas da Árvore:
+Profundidade média: 7.6
+Número médio de folhas: 27.0
