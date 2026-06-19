@@ -1,0 +1,2 @@
+modelo,accuracy_mean,accuracy_std,f1_mean,f1_std,precision_mean,precision_std,recall_mean,recall_std,threshold_mean,threshold_std,kernel_distribution,melhor_configuracao,notas
+SVM (Support Vector Machine),0.8124938934266822,0.005621635089641228,0.8740218859365368,0.003990187468608396,0.8857480385119688,0.0029315828616088375,0.8626116036754254,0.005550894057239496,-0.9427401882452644,0.043921926241497974,{},Mode + Label + Standard,"SVM com StandardScaler, class_weight=balanced, threshold tuning baseado na decision_function"
