@@ -130,6 +130,7 @@ Abra e execute o notebook desejado:
 | Rede Neural | `models/Redes_Neurais/RedesNeurais.ipynb` |
 | Regressão Logística | `models/regrassao_logisticca/RegressaoLogistica.ipynb` |
 | SVM | `models/svm/SVM.ipynb` |
+| Naive Bayes | `models/naive_bayes` |
 
 Esses notebooks carregam o dataset por caminho relativo. Portanto, antes da execução, copie `MICRODADOS_CADASTRO_CURSOS_2024.CSV` para a mesma pasta do notebook escolhido, conforme indicado na seção [Dados](#dados).
 
