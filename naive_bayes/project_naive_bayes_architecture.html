@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Naive Bayes — Arquitetura do Projeto</title>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+  <style>
+    :root {
+      --bg: #1e1e1e;
+      --surface: #252526;
+      --border: #3c3c3c;
+      --text: #d4d4d4;
+      --muted: #9d9d9d;
+      --accent: #569cd6;
+      --accent2: #4ec9b0;
+      --keyword: #c586c0;
+      --string: #ce9178;
+      --number: #b5cea8;
+      --comment: #6a9955;
+      --fn: #dcdcaa;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", "Cascadia Code", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      height: 100vh;
+    }
+    .deck { position: relative; width: 100%; height: 100vh; }
+    .slide {
+      display: none;
+      position: absolute;
+      inset: 0;
+      padding: 3rem 4rem 5rem;
+      overflow-y: auto;
+      animation: fade 0.35s ease;
+    }
+    .slide.active { display: block; }
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    h1 { font-size: 2rem; color: #fff; margin-bottom: 0.5rem; }
+    h2 {
+      font-size: 1.45rem;
+      color: var(--accent);
+      margin-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+    }
+    h3 { font-size: 1rem; color: var(--accent2); margin: 1rem 0 0.5rem; }
+    p, li { line-height: 1.65; margin-bottom: 0.65rem; font-size: 0.95rem; }
+    ul { padding-left: 1.25rem; margin-bottom: 1rem; }
+    .subtitle { color: var(--muted); font-size: 1.1rem; margin-bottom: 2rem; }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .slide { padding: 2rem 1.25rem 4.5rem; }
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+    pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.1rem;
+      overflow-x: auto;
+      font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      margin: 0.75rem 0;
+    }
+    .file-tag {
+      display: inline-block;
+      background: #2d2d30;
+      border: 1px solid var(--border);
+      color: var(--accent2);
+      font-size: 0.75rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      margin-bottom: 0.4rem;
+      font-family: monospace;
+    }
+    .kw { color: var(--keyword); }
+    .fn { color: var(--fn); }
+    .st { color: var(--string); }
+    .cm { color: var(--comment); }
+    .nb { color: var(--number); }
+    .ty { color: var(--accent); }
+    .math-block {
+      background: #2a2a2b;
+      border-left: 3px solid var(--accent);
+      padding: 0.85rem 1rem;
+      margin: 0.75rem 0;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.92rem;
+    }
+    .pill {
+      display: inline-block;
+      background: #333337;
+      border: 1px solid var(--border);
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      margin: 0.15rem 0.2rem 0.15rem 0;
+    }
+    .nav-dots {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 0.55rem;
+      z-index: 10;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #555;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .dot.active { background: var(--accent); transform: scale(1.25); }
+    .counter {
+      position: fixed;
+      bottom: 1.55rem;
+      right: 1.5rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-family: monospace;
+    }
+    .hint {
+      position: fixed;
+      bottom: 1.55rem;
+      left: 1.5rem;
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin: 0.75rem 0;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.45rem 0.6rem;
+      text-align: left;
+    }
+    th { background: #2d2d30; color: var(--accent); }
+    .highlight { color: #fff; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="deck" id="deck">
+
+    <!-- SLIDE 1 -->
+    <section class="slide active" data-slide="0">
+      <h1>Projeto Final — Machine Learning</h1>
+      <p class="subtitle">Naive Bayes Implementation Architecture</p>
+      <p>
+        Apresentação da arquitetura <span class="highlight">real</span> do pipeline de
+        <strong>Naive Bayes</strong> para classificação de
+        <code>ALTO_RISCO_EVASAO</code> em cursos do Censo INEP 2024.
+      </p>
+      <ul>
+        <li><span class="pill">models/naive_bayes/model_factory.py</span> — fábrica de variantes</li>
+        <li><span class="pill">models/naive_bayes/preprocessing.py</span> — 3 pipelines por variante</li>
+        <li><span class="pill">models/naive_bayes/train.py</span> — 90 experimentos + CV 5-fold</li>
+        <li><span class="pill">data/preprocessamento.py</span> — <code>get_df_preprocessado()</code></li>
+        <li><span class="pill">analysis/audit/evaluator.py</span> — reavaliação unificada com <code>ComplementNB</code></li>
+      </ul>
+      <p style="margin-top:1.5rem;color:var(--muted);font-size:0.85rem;">
+        Vencedor empírico do projeto: <strong style="color:var(--accent2)">ComplementNB</strong>
+        com <code>alpha=0.16121212121212125</code>, <code>norm=True</code>
+      </p>
+    </section>
+
+    <!-- SLIDE 2 -->
+    <section class="slide" data-slide="1">
+      <h2>Slide 2 — A Estrutura no Código</h2>
+      <p>
+        O projeto <strong>não implementa Naive Bayes do zero</strong>: encapsula o sklearn em
+        <code>create_model(config)</code>, escolhendo a variante via dicionário de configuração
+        após busca comparativa em <code>train.py</code>.
+      </p>
+      <div class="grid-2">
+        <div>
+          <span class="file-tag">models/naive_bayes/model_factory.py</span>
+          <pre><span class="kw">def</span> <span class="fn">create_model</span>(config: <span class="ty">dict</span>) -> GaussianNB | BernoulliNB | ComplementNB:
+    model_type = config.get(<span class="st">"model_type"</span>)
+
+    <span class="kw">if</span> model_type == <span class="st">"complement"</span>:
+        <span class="kw">return</span> ComplementNB(
+            alpha=<span class="fn">float</span>(config[<span class="st">"alpha"</span>]),
+            norm=<span class="fn">bool</span>(config[<span class="st">"norm"</span>]),
+        )
+    <span class="cm"># gaussian → var_smoothing</span>
+    <span class="cm"># bernoulli → alpha + binarize</span></pre>
+          <h3>Atributos internos (sklearn, pós-<code>fit</code>)</h3>
+          <ul>
+            <li><code>class_log_prior_</code> — log de \(P(y)\) por classe</li>
+            <li><code>feature_log_prob_</code> — log de \(P(x_j \mid y)\) (forma complementar)</li>
+            <li><code>class_count_</code>, <code>feature_count_</code> — contagens do treino</li>
+            <li><code>classes_</code> — rótulos \(\{0, 1\}\) de evasão</li>
+          </ul>
+        </div>
+        <div>
+          <span class="file-tag">models/naive_bayes/preprocessing.py</span>
+          <pre><span class="kw">class</span> <span class="ty">CorrelationRemover</span>(BaseEstimator, TransformerMixin):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, threshold=<span class="nb">0.90</span>):
+        self.threshold = threshold
+        self.columns_to_keep_ = <span class="kw">None</span>
+
+<span class="kw">def</span> <span class="fn">get_preprocessing_pipeline</span>(model_type, binarize_threshold=<span class="nb">0.0</span>):
+    <span class="kw">if</span> model_type == <span class="st">"complement"</span>:
+        <span class="kw">return</span> Pipeline([
+            (<span class="st">"scaler"</span>, MinMaxScaler()),
+        ])</pre>
+          <p>
+            Artefato persistido em <code>best_model.pkl</code> (via <code>joblib</code>):
+            dicionário com <code>config</code>, <code>preprocessor</code> (Pipeline sklearn)
+            e <code>model</code> (estimador ajustado).
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3 -->
+    <section class="slide" data-slide="2">
+      <h2>Slide 3 — A Fase de Treino (<code>fit</code>)</h2>
+      <p>Fluxo real em <code>train.py → _avaliar_configuracao()</code> e <code>_salvar_melhor_modelo()</code>:</p>
+      <ol style="padding-left:1.25rem;margin-bottom:1rem;">
+        <li><code>carregar_dados()</code> → <code>get_df_preprocessado()</code> (features numéricas + alvo binário)</li>
+        <li><code>StratifiedKFold(n_splits=5, shuffle=True, random_state=42)</code></li>
+        <li><code>get_preprocessing_pipeline(model_type)</code> + <code>transformar_dados(..., fit=True)</code></li>
+        <li><code>aplicar_smote_treino(X_train_proc, y_train)</code> — <strong>só no treino do fold</strong></li>
+        <li><code>create_model(config)</code> → <code>modelo.fit(X_train_bal, y_train_bal)</code></li>
+      </ol>
+      <div class="grid-2">
+        <div>
+          <span class="file-tag">models/naive_bayes/train.py</span>
+          <pre>X_train_bal, y_train_bal = <span class="fn">aplicar_smote_treino</span>(X_train_proc, y_train)
+
+modelo = <span class="fn">create_model</span>(config)
+modelo.<span class="fn">fit</span>(X_train_bal, y_train_bal)</pre>
+          <div class="math-block">
+            <strong>ComplementNB (variante vencedora)</strong> — suavização Laplace com
+            \(\alpha = 0.16121212121212125\):
+            \[
+              \hat\theta_{c,j} = \frac{\alpha + \sum_i x_{i,j}\,\mathbb{1}[y_i=c]}{\alpha \cdot d + \sum_{i,j} x_{i,j}\,\mathbb{1}[y_i=c]}
+            \]
+            Priori por contagem (em log, dentro do sklearn):
+            \[
+              \log \hat\pi_c = \log \frac{N_c + \alpha}{N + K\alpha}
+            \]
+          </div>
+        </div>
+        <div>
+          <span class="file-tag">data/preprocessamento.py</span>
+          <pre><span class="kw">def</span> <span class="fn">get_df_preprocessado</span>():
+    df = <span class="fn">_carregar_dados_brutos</span>()
+    df = <span class="fn">_calcular_alvo</span>(df)  <span class="cm"># taxa_evasao ≥ mediana</span>
+    <span class="kw">return</span> <span class="fn">_selecionar_features</span>(df)</pre>
+          <p>
+            Filtro populacional: <code>QT_ING &gt;= 10</code>.
+            Alvo: <code>alto_risco_evasao</code> quando
+            <code>taxa_evasao &gt;= mediana(taxa_evasao)</code>.
+            Features: apenas colunas numéricas, excluindo identificadores e vazamento
+            (<code>COLUNAS_VAZAMENTO</code>, prefixos <code>QT_MAT</code>, <code>QT_CONC</code>).
+          </p>
+          <p>
+            Para <strong>ComplementNB</strong>, o pipeline aplica apenas
+            <code>MinMaxScaler()</code> — escala features para \([0,1]\), requisito da
+            variante complementar com contagens não negativas.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4 -->
+    <section class="slide" data-slide="3">
+      <h2>Slide 4 — A Fase de Predição (<code>predict</code>)</h2>
+      <p>Após transformar o teste com o mesmo pipeline ajustado no fold:</p>
+      <span class="file-tag">models/naive_bayes/train.py — _avaliar_configuracao()</span>
+      <pre>y_pred = modelo.<span class="fn">predict</span>(X_test_proc)
+y_proba = modelo.<span class="fn">predict_proba</span>(X_test_proc)[:, <span class="nb">1</span>]</pre>
+      <div class="grid-2">
+        <div>
+          <h3>Fluxo interno (sklearn ComplementNB)</h3>
+          <div class="math-block">
+            O projeto delega a decisão ao sklearn, que calcula
+            \(\arg\max_c \big[\log \hat\pi_c + \sum_j x_j \cdot f_{c,j}\big]\)
+            onde \(f_{c,j}\) vem de <code>feature_log_prob_</code>
+            (forma complementar com <code>norm=True</code>).
+          </div>
+          <p>
+            <code>predict()</code> retorna a classe com maior log-posterior (0 ou 1).
+            <code>predict_proba()</code> expone probabilidades via
+            <code>np.exp(log_prob - logsumexp(log_prob))</code> — o projeto usa
+            apenas a coluna da classe positiva para ROC-AUC.
+          </p>
+        </div>
+        <div>
+          <h3>Métricas calculadas no projeto</h3>
+          <span class="file-tag">train.py — _calcular_metricas_fold()</span>
+          <pre><span class="kw">return</span> {
+    <span class="st">"accuracy"</span>: accuracy_score(y_true, y_pred),
+    <span class="st">"precision"</span>: precision_score(y_true, y_pred, zero_division=<span class="nb">0</span>),
+    <span class="st">"recall"</span>: recall_score(y_true, y_pred, zero_division=<span class="nb">0</span>),
+    <span class="st">"f1"</span>: f1_score(y_true, y_pred, zero_division=<span class="nb">0</span>),
+    <span class="st">"roc_auc"</span>: roc_auc_score(y_true, y_proba),
+}</pre>
+          <p>
+            Critério de seleção entre 90 configs:
+            <strong>maior recall médio</strong> → desempate por F1 → ROC-AUC → menor
+            <code>recall_std</code>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5 -->
+    <section class="slide" data-slide="4">
+      <h2>Slide 5 — Minhas Otimizações Específicas</h2>
+      <table>
+        <thead>
+          <tr><th>Otimização</th><th>Onde no código</th><th>Valor / decisão</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Comparação empírica de 3 variantes</td>
+            <td><code>train.py → _gerar_configuracoes_aleatorias()</code></td>
+            <td>30 configs × GaussianNB, BernoulliNB, ComplementNB</td>
+          </tr>
+          <tr>
+            <td>Suavização (ComplementNB vencedor)</td>
+            <td><code>model_factory.py</code> + <code>best_params.json</code></td>
+            <td><strong>alpha = 0.16121212121212125</strong>, <code>norm=True</code></td>
+          </tr>
+          <tr>
+            <td>Suavização (GaussianNB)</td>
+            <td><code>var_smoothing</code> amostrado de <code>np.logspace(-12, -1, 100)</code></td>
+            <td>Parâmetro de variância mínima da Gaussiana</td>
+          </tr>
+          <tr>
+            <td>Prevenção de underflow</td>
+            <td>sklearn <code>ComplementNB._joint_log_likelihood()</code></td>
+            <td>Projeto usa <code>predict_proba</code>; sklearn soma em <strong>log</strong>, não multiplica probs brutas</td>
+          </tr>
+          <tr>
+            <td>SMOTE só no treino</td>
+            <td><code>aplicar_smote_treino()</code>, <code>SMOTE(random_state=42)</code></td>
+            <td>Evita vazamento; não balanceia antes do split de folds</td>
+          </tr>
+          <tr>
+            <td>Pipeline ComplementNB</td>
+            <td><code>get_preprocessing_pipeline("complement")</code></td>
+            <td>Apenas <code>MinMaxScaler()</code> (sem VarianceThreshold/correlação)</td>
+          </tr>
+          <tr>
+            <td>Pipeline GaussianNB</td>
+            <td><code>VarianceThreshold(0.01)</code> + <code>CorrelationRemover(0.90)</code> + <code>StandardScaler()</code></td>
+            <td>Remove baixa variância e colinearidade &gt; 0.90</td>
+          </tr>
+          <tr>
+            <td>Pipeline BernoulliNB</td>
+            <td><code>Binarizer(threshold)</code> + <code>alpha</code> + <code>binarize</code> em [0,1]</td>
+            <td>Features binárias; limiar tunado por experimento</td>
+          </tr>
+          <tr>
+            <td>Reavaliação na auditoria</td>
+            <td><code>analysis/audit/evaluator.py</code></td>
+            <td>Mesmo <code>ComplementNB(alpha=0.161…, norm=True)</code> + <code>MinMaxFoldPreprocessor</code> + SMOTE</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SLIDE 6 -->
+    <section class="slide" data-slide="5">
+      <h2>Slide 6 — Exemplo de Execução Real</h2>
+      <span class="file-tag">Entrada — train.py main()</span>
+      <pre><span class="cm"># Etapa 1: carregar dados INEP preprocessados</span>
+X, y = <span class="fn">carregar_dados</span>()   <span class="cm"># get_df_preprocessado() → DataFrame + Series</span>
+
+<span class="cm"># Configuração vencedora (best_params.json)</span>
+config = {
+    <span class="st">"model_type"</span>: <span class="st">"complement"</span>,
+    <span class="st">"alpha"</span>: <span class="nb">0.16121212121212125</span>,
+    <span class="st">"norm"</span>: <span class="kw">True</span>,
+}
+
+pipeline = <span class="fn">get_preprocessing_pipeline</span>(<span class="st">"complement"</span>)
+X_proc, _ = <span class="fn">transformar_dados</span>(pipeline, X, y_train=y, fit=<span class="kw">True</span>)
+X_train, y_train = <span class="fn">aplicar_smote_treino</span>(X_proc, y.to_numpy())
+
+modelo = <span class="fn">create_model</span>(config)
+modelo.<span class="fn">fit</span>(X_train, y_train)
+
+y_pred = modelo.<span class="fn">predict</span>(X_proc[:<span class="nb">1000</span>])
+y_proba = modelo.<span class="fn">predict_proba</span>(X_proc[:<span class="nb">1000</span>])[:, <span class="nb">1</span>]</pre>
+      <h3>Saída esperada (CV 5-fold — metrics_summary.csv)</h3>
+      <table>
+        <thead>
+          <tr><th>Métrica</th><th>Média</th><th>Desvio</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Accuracy</td><td>0.5750</td><td>0.0020</td></tr>
+          <tr><td>Precision</td><td>0.5426</td><td>0.0012</td></tr>
+          <tr><td><strong>Recall</strong></td><td><strong>0.9731</strong></td><td>0.0023</td></tr>
+          <tr><td>F1</td><td>0.6967</td><td>0.0013</td></tr>
+          <tr><td>ROC-AUC</td><td>0.7268</td><td>0.0074</td></tr>
+        </tbody>
+      </table>
+      <p style="color:var(--muted);font-size:0.85rem;">
+        Comando: <code>cd models/naive_bayes && python train.py</code> —
+        gera <code>artifacts/best_model.pkl</code>, <code>all_experiments.csv</code> e
+        <code>report/naive_bayes_report.pdf</code>.
+      </p>
+    </section>
+
+    <!-- SLIDE 7 -->
+    <section class="slide" data-slide="6">
+      <h2>Slide 7 — Por que ComplementNB é ótimo para MEUS dados</h2>
+      <ul>
+        <li>
+          <strong>Formato tabular misto codificado numericamente</strong> —
+          <code>get_df_preprocessado()</code> entrega dezenas de features numéricas
+          (contagens INEP + proporções derivadas), não texto bruto.
+          ComplementNB lida bem com features não negativas após <code>MinMaxScaler</code>.
+        </li>
+        <li>
+          <strong>Desbalanceamento de classes</strong> — o alvo por mediana gera classes
+          ~50/50, mas o pipeline aplica <code>SMOTE(random_state=42)</code> no treino;
+          ComplementNB foi projetado para dados complementares/implementações com
+          <code>norm=True</code> que estabilizam pesos em cenários assimétricos.
+        </li>
+        <li>
+          <strong>Seleção empírica, não assumida</strong> — entre 90 experimentos,
+          ComplementNB superou GaussianNB (recall 0.955) e BernoulliNB (recall 0.878)
+          no critério do projeto: <em>maximizar recall</em> de evasão.
+        </li>
+        <li>
+          <strong>Hiperparâmetro tunado</strong> — <code>alpha=0.1612…</code> evita
+          zero absoluto em features raras do Censo sem suavização excessiva (grid
+          amostrado em <code>np.linspace(0.01, 5.0, 100)</code>).
+        </li>
+        <li>
+          <strong>Velocidade e interpretabilidade operacional</strong> —
+          <code>fit</code>/<code>predict</code> vetorizados no sklearn; artefato único
+          (<code>best_model.pkl</code>) com preprocessor acoplado facilita deploy e
+          comparação com LR, Árvore, SVM e MLP no mesmo repositório.
+        </li>
+      </ul>
+      <p style="margin-top:1rem;padding:1rem;background:#2a2a2b;border-radius:8px;border:1px solid var(--border);">
+        <strong>Conclusão:</strong> a implementação do projeto escolhe
+        <span class="highlight">ComplementNB + MinMaxScaler + SMOTE no treino</span>
+        porque esse trio maximizou recall na validação cruzada estratificada sobre
+        microdados INEP 2024 — exatamente o objetivo de alerta precoce de
+        <code>ALTO_RISCO_EVASAO</code>.
+      </p>
+    </section>
+
+  </div>
+
+  <div class="hint">← → navegar</div>
+  <div class="counter" id="counter">1 / 7</div>
+  <nav class="nav-dots" id="dots"></nav>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    const dotsContainer = document.getElementById('dots');
+    const counter = document.getElementById('counter');
+    let current = 0;
+
+    slides.forEach((_, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === 0 ? ' active' : '');
+      dot.setAttribute('aria-label', 'Slide ' + (i + 1));
+      dot.addEventListener('click', () => goTo(i));
+      dotsContainer.appendChild(dot);
+    });
+
+    const dots = [...dotsContainer.children];
+
+    function goTo(index) {
+      if (index < 0 || index >= slides.length) return;
+      slides[current].classList.remove('active');
+      dots[current].classList.remove('active');
+      current = index;
+      slides[current].classList.add('active');
+      dots[current].classList.add('active');
+      counter.textContent = (current + 1) + ' / ' + slides.length;
+      if (window.MathJax && MathJax.typesetPromise) {
+        MathJax.typesetPromise([slides[current]]).catch(() => {});
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(current - 1); }
+    });
+
+    goTo(0);
+  </script>
+</body>
+</html>
